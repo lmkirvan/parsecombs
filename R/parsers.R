@@ -44,8 +44,8 @@ pchar <- function(char){
   parser(.p)
 }
 
-run <- function(pf, input){
-  purrr::invoke(.f = pf[[1]], .x = input)
+run <- function(.p, input){
+  purrr::invoke(.f = .p[[1]], .x = input)
 }
 
 then <- function(parserL, parserR){
@@ -129,9 +129,9 @@ map_p <- function(.f, .p){
 
 map_p_pipe <- function(.p, .f){
   function(input){
-    result <- run(.p,input)
+    result <- run(.p, input)
     if(is.success(result)){
-      result$match <- .f(result$match, ...)
+      result$match <- .f(result$match)
       result
     } else {
       stop(result$error)
@@ -160,10 +160,20 @@ apply_p <- function(paserL, parserR){
 
 `%apply%` <- apply_p
 
-
-return_p("x") %>%  run("test")
-
-
-
 parse_digit <- any_of(as.character(0:9))
+
+parse_string <- function(string){
+  stringr::str_split(string, "") %>%
+    purrr::map(pchar) %>%
+    purrr::reduce( .f =  then ) %map_p%
+    glue::glue_colapse
+}
+
+
+many <- function(.p){
+  function(input){
+    if(is.success(.p(input)))
+  }
+}
+
 
