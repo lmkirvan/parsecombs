@@ -57,7 +57,7 @@ then <- function(parserL, parserR){
     resultR <- parserR(resultL$rest)
 
     if(!is.success(resultR)){
-      stop(resultR$error)
+      list()
       } else {
         #should this be a nested list instead of a vector of successes?
         list(
@@ -81,11 +81,6 @@ then <- function(parserL, parserR){
 #' @examples
 or_else <- function(parserL, parserR){
   function(input){
-
-    if(is.success(input)){
-      input <- input$rest[1]
-    }
-
     if(nchar(input) == 0){
       return(list())
     }
@@ -105,6 +100,15 @@ choice <- function(.p){
   purrr::reduce(.p, .f = or_else)
 }
 
+#' anyof combinator, takes a vector of characters and returns a parser that
+#' mactches any of them
+#'
+#' @param chars
+#'
+#' @return
+#' @export
+#'
+#' @examples
 any_of <- function(chars){
   chars %>%
     purrr::map(pchar) %>%
@@ -113,7 +117,7 @@ any_of <- function(chars){
 
 map_p <- function(.f, .p){
   function(input){
-    result <- run(.p, input)
+    result <- .p(input)
     if(is.success(result)){
       result$match <- .f(result$match)
       result
@@ -125,7 +129,7 @@ map_p <- function(.f, .p){
 
 map_p_pipe <- function(.p, .f){
   function(input){
-    result <- run(.p, input)
+    result <- .p(input)
     if(is.success(result)){
       result$match <- .f(result$match)
       result
@@ -148,10 +152,14 @@ return_p <- function(x){
 
 parse_digit <- any_of(as.character(0:9))
 
+collapse <- function(vec){
+  paste0(vec, collapse = "")
+}
+
 parse_string <- function(string){
-  stringr::str_split(string, "") %>%
+  stringr::str_split(string, "")[[1]] %>%
     purrr::map(pchar) %>%
-    purrr::reduce( .f =  then ) %map_p%
-    paste0()
+    purrr::reduce(.f = then) %map_p%
+    collapse
 }
 
