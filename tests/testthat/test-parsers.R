@@ -19,10 +19,27 @@ test_that("parsing with %then%  three times works", {
   )
 })
 
-test_that("parsing with %or_else%  works", {
+test_that("parsing with %or_else% works", {
   testthat::expect_equal(
-    (pchar("s") %then% pchar("l") %then% pchar("a"))("slate")$match,
-    c('s', 'l', 'a')
+    (pchar("s") %or_else% pchar("l") %or_else% pchar("a"))("slate")$match,
+    c('s')
+  )
+
+})
+
+test_that("parsing with any_of works", {
+  testthat::expect_equal(
+    parse_digit("123")$match,
+    "1"
   )
 })
 
+test_that("map_p applies a function", {
+  testthat::expect_equal(
+    (parse_digit %map_p% as.integer)("1234")$match,
+    1
+  )
+}
+
+
+          )
