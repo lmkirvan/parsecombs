@@ -10,6 +10,11 @@ is.success <- function(result){
   !is.na(result[["match"]][1])
 }
 
+collapse <- function(vec){
+  paste0(vec, collapse = "")
+}
+
+
 #' parse a single character
 #'
 #' @param char
@@ -21,10 +26,12 @@ is.success <- function(result){
 pchar <- function(char){
   function(input){
     if(char == first(input)){
-      list(match = char, rest = rest(input), error = NA)
+      l <- list(match = char, rest = rest(input), error = NA)
+      structure(l, "success" = TRUE)
     } else {
       error <- sprintf("expecting %s, got %s", char, first(input))
-      list(match = NA, rest = input, error = error)
+      l <- list(match = NA, rest = input, error = error)
+      structure(l, "success" = FALSE)
     }
   }
 }
@@ -57,7 +64,7 @@ then <- function(parserL, parserR){
     resultR <- parserR(resultL$rest)
 
     if(!is.success(resultR)){
-      list()
+      resultR
       } else {
         #should this be a nested list instead of a vector of successes?
         list(
@@ -139,22 +146,51 @@ map_p_pipe <- function(.p, .f){
   }
   }
 
+
 `%map_p%` <- map_p_pipe
+
 
 return_p <- function(x){
   function(input){
-    return(success(list(
+    list(
       match = x,
-      rest = input
-    )))
+      rest = input,
+      error = NA
+      )
+    }
+  }
+
+many_inner <- function(.p, input){
+  result <- .p(input)
+  if(!is.success(result)){
+    list(
+      match = character(),
+      rest = result$rest,
+      error = NA
+    )
+  } else {
+    next_result <- many_inner(.p, result$rest)
+    list(
+      match = c(result$match, next_result$match),
+      rest = next_result$rest,
+      error = NA
+    )
+  }
+}
+
+many <- function(.p){
+  function(input){
+    many_inner(.p, input)
+  }
+}
+
+many1 <- function(.p){
+  function(input){
+    (.p %then% many(.p))(input)
   }
 }
 
 parse_digit <- any_of(as.character(0:9))
-
-collapse <- function(vec){
-  paste0(vec, collapse = "")
-}
 
 parse_string <- function(string){
   stringr::str_split(string, "")[[1]] %>%
@@ -162,4 +198,3 @@ parse_string <- function(string){
     purrr::reduce(.f = then) %map_p%
     collapse
 }
-
