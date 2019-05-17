@@ -58,7 +58,7 @@ then <- function(parserL, parserR){
     resultL <- parserL(input)
 
     if(!is.success(resultL)){
-      stop(resultL$error)
+      resultL
     }
 
     resultR <- parserR(resultL$rest)
@@ -141,7 +141,7 @@ map_p_pipe <- function(.p, .f){
       result$match <- .f(result$match)
       result
     } else {
-      list()
+      input
     }
   }
   }
@@ -198,3 +198,13 @@ parse_string <- function(string){
     purrr::reduce(.f = then) %map_p%
     collapse
 }
+
+parse_int <- function(input){
+  many1(parse_digit) %map_p%
+    collapse %map_p%
+    as.integer %>%
+    purrr::invoke(input)
+}
+
+
+
