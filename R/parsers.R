@@ -246,4 +246,3 @@ keep_which <- function(parserL, parserR, .which){
 
 `%keep_left%` <- keep_left
 `%keep_right%` <- keep_right
-
