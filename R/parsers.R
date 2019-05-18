@@ -8,7 +8,7 @@ rest <- function(string){
 
 is.success <- function(result){
   if(length(result)> 0){
-  !is.na(result[["match"]][1])
+  is.na(result[["error"]][1])
   } else {
     TRUE
   }
@@ -246,3 +246,12 @@ keep_which <- function(parserL, parserR, .which){
 
 `%keep_left%` <- keep_left
 `%keep_right%` <- keep_right
+
+whitespace_chr <- any_of(c(" ", "\t", "\n"))
+whitespace <- many1(whitespace_chr)
+
+ab <- parse_string("ab")
+bc <- parse_string("bc")
+
+
+
