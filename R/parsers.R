@@ -250,8 +250,3 @@ keep_which <- function(parserL, parserR, .which){
 whitespace_chr <- any_of(c(" ", "\t", "\n"))
 whitespace <- many1(whitespace_chr)
 
-ab <- parse_string("ab")
-bc <- parse_string("bc")
-
-
-
