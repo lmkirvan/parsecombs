@@ -7,13 +7,16 @@ rest <- function(string){
 }
 
 is.success <- function(result){
+  if(length(result)> 0){
   !is.na(result[["match"]][1])
+  } else {
+    TRUE
+  }
 }
 
 collapse <- function(vec){
   paste0(vec, collapse = "")
 }
-
 
 #' parse a single character
 #'
@@ -64,7 +67,7 @@ then <- function(parserL, parserR){
     resultR <- parserR(resultL$rest)
 
     if(!is.success(resultR)){
-      resultR
+      stop(resultR$error)
       } else {
         #should this be a nested list instead of a vector of successes?
         list(
@@ -88,9 +91,6 @@ then <- function(parserL, parserR){
 #' @examples
 or_else <- function(parserL, parserR){
   function(input){
-    if(nchar(input) == 0){
-      return(list())
-    }
     resultL <- parserL(input)
     if(is.success(resultL)){
       resultL
@@ -141,7 +141,7 @@ map_p_pipe <- function(.p, .f){
       result$match <- .f(result$match)
       result
     } else {
-      list()
+      input
     }
   }
   }
@@ -198,3 +198,52 @@ parse_string <- function(string){
     purrr::reduce(.f = then) %map_p%
     collapse
 }
+
+parse_int <- function(input){
+  optional(pchar("-")) %then%
+  many1(parse_digit) %map_p%
+    collapse %map_p%
+    as.integer %>%
+    purrr::invoke(input)
+}
+
+optional <- function(.p){
+  function(input){
+    result <- .p(input)
+    if(!is.success(result)){
+      return_p("")(input)
+    } else {
+      result
+    }
+  }
+}
+
+match_n <- function(result, n){
+  result$match <- result$match[n]
+  result
+}
+
+keep_left <- function(parserL, parserR){
+  function(input){
+    .p <- parserL %then% parserR
+    .p(input) %>% match_n(1)
+  }
+}
+
+keep_right <- function(parserL, parserR){
+  function(input){
+    .p <- parserL %then% parserR
+    .p(input) %>% match_n(2)
+  }
+}
+
+keep_which <- function(parserL, parserR, .which){
+  function(input){
+    .p <- parserL %then% parserR
+    .p(input) %>% match_n(.which)
+  }
+}
+
+`%keep_left%` <- keep_left
+`%keep_right%` <- keep_right
+
