@@ -250,3 +250,7 @@ keep_which <- function(parserL, parserR, .which){
 whitespace_chr <- any_of(c(" ", "\t", "\n"))
 whitespace <- many1(whitespace_chr)
 
+between <- function(parserL, parserM, parserR){
+  parserL %keep_right% parserM %keep_left% parserR
+}
+
