@@ -58,7 +58,7 @@ test_that("parse_int_works", {
     -123)
   })
 
-test_that("parse_int_works", {
+test_that("keep left and right work", {
   testthat::expect_equal(
     (pchar("s") %keep_left% pchar("k"))("ska")$match,
     "s")
@@ -66,5 +66,6 @@ test_that("parse_int_works", {
     (pchar("s") %keep_right% pchar("k"))("ska")$match,
     "k")
   })
+
 
 
