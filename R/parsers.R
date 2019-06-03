@@ -53,6 +53,11 @@ pchar <- function(char){
 #' pchar('p') %then% pchar('a')('parse')
 then <- function(parserL, parserR){
   function(input){
+
+    if(length(input) == 0){
+      return_p(input)
+    }
+
     if(nchar(input) == 0){
       #should this be null?
       return(list())
@@ -149,7 +154,6 @@ map_p_pipe <- function(.p, .f){
 
 `%map_p%` <- map_p_pipe
 
-
 return_p <- function(x){
   function(input){
     list(
@@ -161,7 +165,13 @@ return_p <- function(x){
   }
 
 many_inner <- function(.p, input){
+
+  if(is.null(input)){
+    return(list())
+  }
+
   result <- .p(input)
+
   if(!is.success(result)){
     list(
       match = character(),
@@ -199,14 +209,6 @@ parse_string <- function(string){
     collapse
 }
 
-parse_int <- function(input){
-  optional(pchar("-")) %then%
-  many1(parse_digit) %map_p%
-    collapse %map_p%
-    as.integer %>%
-    purrr::invoke(input)
-}
-
 optional <- function(.p){
   function(input){
     result <- .p(input)
@@ -216,6 +218,14 @@ optional <- function(.p){
       result
     }
   }
+}
+
+parse_int <- function(input){
+  optional(pchar("-")) %then%
+    many1(parse_digit) %map_p%
+    collapse %map_p%
+    as.integer %>%
+    purrr::invoke(input)
 }
 
 match_n <- function(result, n){
@@ -253,4 +263,13 @@ whitespace <- many1(whitespace_chr)
 between <- function(parserL, parserM, parserR){
   parserL %keep_right% parserM %keep_left% parserR
 }
+
+sep_by1 <- function(.p, sep = " "){
+  sep_pair <- many1((pchar(sep) %keep_right% .p))
+  .p %then% sep_pair
+}
+
+
+
+
 

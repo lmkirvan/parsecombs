@@ -51,7 +51,7 @@ test_that("many1 works as planned", {
 
 test_that("parse_int_works", {
   testthat::expect_equal(
-    parse_int("123")$match,
+    parse_int("123abz")$match,
     123)
   testthat::expect_equal(
     parse_int("-123")$match,
@@ -65,7 +65,23 @@ test_that("keep left and right work", {
   testthat::expect_equal(
     (pchar("s") %keep_right% pchar("k"))("ska")$match,
     "k")
+  testthat::expect_equal(
+    (pchar("s") %keep_right% pchar("k"))("sk")$match,
+    "k")
+
   })
+
+test_that("parsing separators works", {
+
+  comma_sep <- sep_by1(.p = parse_int, sep = ",")
+
+  testthat::expect_equal(
+    comma_sep("12,2,3,6,78")$match[1],
+    "12"
+  )
+
+})
+
 
 
 
